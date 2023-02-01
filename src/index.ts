@@ -198,12 +198,16 @@ async function sendSlackMessage(data: PerfData, opts: Opts): Promise<void> {
     const slack = new WebClient(opts.slackToken, { logLevel: LogLevel.ERROR });
 
     let username: string;
+    let platformIcon: string;
     if (process.platform === 'darwin') {
         username = `macOS_${Constants.RUNTIME}`;
+        platformIcon = ':apple:';
     } else if (process.platform === 'win32') {
         username = `Windows_${Constants.RUNTIME}`;
+        platformIcon = ':windows:';
     } else {
         username = `Linux_${Constants.RUNTIME}`;
+        platformIcon = ':penguin:';
     }
 
     const stub: ChatPostMessageArguments = {
@@ -212,7 +216,7 @@ async function sendSlackMessage(data: PerfData, opts: Opts): Promise<void> {
         username
     }
 
-    const summary = `${bestDuration! < Constants.FAST ? ':rocket:' : ':hankey:'} Summary: BEST \`${bestDuration}ms\`, VERSION \`${commit}\`, APP \`${appName}_${Constants.RUNTIME}\` :apple: :vscode-insiders:`
+    const summary = `${bestDuration! < Constants.FAST ? ':rocket:' : ':hankey:'} Summary: BEST \`${bestDuration}ms\`, VERSION \`${commit}\`, APP \`${appName}_${Constants.RUNTIME}\` ${platformIcon} :vscode-insiders:`
     const detail = `\`\`\`${lines.join("\n")}\`\`\``;
 
     // goal: one message-thread per commit.
