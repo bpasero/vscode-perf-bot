@@ -9,8 +9,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { program, Option } from 'commander';
 import chalk from 'chalk';
-import { Octokit } from "@octokit/rest";
-import { WebClient, LogLevel, ChatPostMessageArguments } from "@slack/web-api";
+import { Octokit } from '@octokit/rest';
+import { WebClient, LogLevel, ChatPostMessageArguments } from '@slack/web-api';
 
 interface Opts {
     readonly slackToken?: string;
@@ -27,7 +27,7 @@ interface Opts {
 }
 
 const Constants = {
-    PERF_FILE: path.join(tmpdir(), 'vscode-perf-bot', "prof-startup.txt"),
+    PERF_FILE: path.join(tmpdir(), 'vscode-perf-bot', 'prof-startup.txt'),
     FAST: 2000,
     RUNTIME: 'desktop',
     DATE: new Date(),
@@ -192,7 +192,6 @@ async function sendSlackMessage(data: PerfData, opts: Opts): Promise<void> {
         }
     }
 
-
     const { commit, bestDuration, appName, lines } = data;
 
     const slack = new WebClient(opts.slackToken, { logLevel: LogLevel.ERROR });
@@ -217,7 +216,7 @@ async function sendSlackMessage(data: PerfData, opts: Opts): Promise<void> {
     }
 
     const summary = `${bestDuration! < Constants.FAST ? ':rocket:' : ':hankey:'} Summary: BEST \`${bestDuration}ms\`, VERSION \`${commit}\`, APP \`${appName}_${Constants.RUNTIME}\` ${platformIcon} :vscode-insiders:`
-    const detail = `\`\`\`${lines.join("\n")}\`\`\``;
+    const detail = `\`\`\`${lines.join('\n')}\`\`\``;
 
     // goal: one message-thread per commit.
     // check for an existing thread and post a reply to it. 
@@ -236,8 +235,8 @@ async function sendSlackMessage(data: PerfData, opts: Opts): Promise<void> {
 
     await slack.chat.postMessage({
         ...stub,
-        text: detail,
-        thread_ts,
+        text: `${summary}\n${detail}`,
+        thread_ts
     });
 
     if (opts.slackMessageThreads) {
