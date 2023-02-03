@@ -115,10 +115,8 @@ async function runPerformanceTest(opts: Opts): Promise<void> {
         '--runtime',
         Constants.RUNTIME,
         '--unreleased',
-        '--duration-markers-file',
-        Constants.PERF_FILE,
         '--runs',
-        '2'
+        '10'
     ]
 
     if (opts.runtime === 'web') {
