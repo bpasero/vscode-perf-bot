@@ -13,17 +13,21 @@ import { Octokit } from '@octokit/rest';
 import { WebClient, LogLevel, ChatPostMessageArguments } from '@slack/web-api';
 
 interface Opts {
-    readonly slackToken?: string;
-    readonly slackMessageThreads?: string;
+    readonly runtime?: 'desktop' | 'web';
+    readonly quality?: 'stable' | 'insider' | 'exploration';
+   
+    readonly folder?: string;
+    readonly file?: string;
 
     readonly githubToken?: string;
     readonly gist?: string;
 
-    readonly runtime?: 'web' | 'desktop' | 'vscode.dev';
+    readonly slackToken?: string;
+    readonly slackMessageThreads?: string;
+
     readonly fast?: number;
 
     readonly verbose?: boolean;
-    readonly reset?: boolean;
 }
 
 const Constants = {
@@ -78,27 +82,56 @@ async function logGist(opts: Opts): Promise<void> {
 
 async function runPerformanceTest(opts: Opts): Promise<void> {
     log(`${chalk.gray('[init]')} storing performance results in ${chalk.green(Constants.PERF_FILE)}`);
+
     fs.mkdirSync(path.dirname(Constants.PERF_FILE), { recursive: true });
+    if (fs.existsSync(Constants.PERF_FILE)) {
+        fs.truncateSync(Constants.PERF_FILE);
+    }
+
+    let build: string;
+    if (opts.runtime === 'web') {
+        if (opts.quality === 'stable') {
+            if (opts.githubToken) {
+                build = 'https://vscode.dev/github/microsoft/vscode/blob/main/package.json';
+            } else {
+                build = 'https://vscode.dev';
+            }
+        } else {
+            if (opts.githubToken) {
+                build = 'https://insiders.vscode.dev/github/microsoft/vscode/blob/main/package.json';
+            } else {
+                build = 'https://insiders.vscode.dev';
+            }
+        }
+    } else {
+        build = opts.quality || 'insider';
+    }
 
     const args: string[] = [
         '--yes',
-        'vscode-bisect@latest',
-        '-p',
+        '@vscode/vscode-perf@latest',
+        '--build',
+        build,
+        '--runtime',
+        Constants.RUNTIME,
+        '--unreleased',
+        '--prof-append-timers',
         Constants.PERF_FILE,
-        '-c',
-        'latest',
-        '-r',
-        Constants.RUNTIME
+        '--runs',
+        '10'
     ]
 
+    if (opts.folder) {
+        args.push('--folder', opts.folder);
+    }
+    if (opts.file) {
+        args.push('--file', opts.file);
+    }
     if (opts.githubToken) {
-        args.push('-t', opts.githubToken);
+        args.push('--token', opts.githubToken);
     }
     if (opts.verbose) {
-        args.push('-v');
-    }
-    if (opts.reset) {
-        args.push('--reset');
+        args.push('--verbose');
     }
 
     return new Promise(resolve => {
@@ -210,13 +243,22 @@ async function sendSlackMessage(data: PerfData, opts: Opts): Promise<void> {
         platformIcon = ':penguin:';
     }
 
+    let qualityIcon: string;
+    if (opts.quality === 'stable') {
+        qualityIcon = ':vscode-stable:';
+    } else if (opts.quality === 'insider') {
+        qualityIcon = ':vscode-insider:';
+    } else {
+        qualityIcon = ':vscode-exploration:';
+    }
+
     const stub: ChatPostMessageArguments = {
         channel: 'C3NBSM7K3',
         icon_emoji: ':robot_face:',
         username
     }
 
-    const summary = `${bestDuration! < Constants.FAST ? ':rocket:' : ':hankey:'} Summary: BEST \`${bestDuration}ms\`, VERSION \`${commit}\`, APP \`${appName}_${Constants.RUNTIME}\` ${platformIcon} :vscode-insiders:`
+    const summary = `${bestDuration! < Constants.FAST ? ':rocket:' : ':hankey:'} Summary: BEST \`${bestDuration}ms\`, VERSION \`${commit}\`, APP \`${appName}_${Constants.RUNTIME}\` ${platformIcon} ${qualityIcon}`
     const detail = `\`\`\`${lines.join('\n')}\`\`\``;
 
     // goal: one message-thread per commit.
@@ -251,13 +293,15 @@ module.exports = async function (argv: string[]): Promise<void> {
     program.addHelpText('beforeAll', `Version: ${require('../package.json').version}\n`);
 
     program
-        .addOption(new Option('-r, --runtime <runtime>', 'whether to measure startup performance with a local web, online vscode.dev or local desktop (default) version').choices(['desktop', 'web', 'vscode.dev']))
-        .option('--reset', 'deletes the cache folder (use only for troubleshooting)')
-        .option('-f, --fast <number>', 'what time is considered a fast performance run')
-        .option('--gist <id>', 'a Gist ID to write all log messages to')
+        .addOption(new Option('-r, --runtime <runtime>', 'whether to measure startup performance with vscode.dev or local desktop (default) version').choices(['desktop', 'web']))
+        .addOption(new Option('-q, --quality <quality>', 'the quality to test (insiders by default)').choices(['stable', 'insider', 'exploration']))
+        .option('--folder <folder path>', 'a folder path to open (desktop only)')
+        .option('--file <file path>', 'a file path to open (desktop only)')
         .option('--github-token <token>', `a GitHub token of scopes 'repo', 'workflow', 'user:email', 'read:user', 'gist' to enable additional performance tests targetting web and logging to a Gist`)
+        .option('--gist <id>', 'a Gist ID to write all log messages to')
         .option('--slack-token <token>', `a Slack token for writing Slack messages`)
         .option('--slack-message-threads <filepath>', `a file in which commit -> message thread mappings are stored`)
+        .option('-f, --fast <number>', 'what time is considered a fast performance run')
         .option('-v, --verbose', 'logs verbose output to the console when errors occur');
 
     const opts: Opts = program.parse(argv).opts();
