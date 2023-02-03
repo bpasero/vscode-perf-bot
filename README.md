@@ -1,4 +1,4 @@
-# @vscode/vscode-perf-bot
+# vscode-perf-bot
 A command line tool to run VS Code performance tests and write results to Slack.
 
 ## Requirements
@@ -8,13 +8,13 @@ A command line tool to run VS Code performance tests and write results to Slack.
 ## Usage
 
 ```sh
-npx @vscode/vscode-perf-bot@latest [ARGS]
+npx vscode-perf-bot [ARGS]
 ```
 
 ## Help
 
 ```sh
-npx @vscode/vscode-perf-bot@latest --help
+npx vscode-perf-bot --help
 ```
 
-`@vscode/vscode-perf-bot` is meant to be only used as a command line tool.
+`vscode-perf-bot` is meant to be only used as a command line tool.
