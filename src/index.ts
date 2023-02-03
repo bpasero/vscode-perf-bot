@@ -115,15 +115,11 @@ async function runPerformanceTest(opts: Opts): Promise<void> {
         '--runtime',
         Constants.RUNTIME,
         '--unreleased',
+        '--prof-append-timers',
+        Constants.PERF_FILE,
         '--runs',
         '10'
     ]
-
-    if (opts.runtime === 'web') {
-        args.push('--duration-markers-file', Constants.PERF_FILE);
-    } else {
-        args.push('--prof-append-timers', Constants.PERF_FILE);
-    }
 
     if (opts.folder) {
         args.push('--folder', opts.folder);
