@@ -250,10 +250,12 @@ async function sendSlackMessage(data: PerfData, opts: Opts): Promise<void> {
     }
 
     let qualityIcon: string;
-    if (opts.quality === 'insider') {
-        qualityIcon = ':vscode-insiders:';
+    if (opts.quality === 'stable') {
+        qualityIcon = ':vscode-stable:';
+    } else if (opts.quality === 'insider') {
+        qualityIcon = ':vscode-insider:';
     } else {
-        qualityIcon = ':vscode-pride:';
+        qualityIcon = ':vscode-exploration:';
     }
 
     const stub: ChatPostMessageArguments = {
