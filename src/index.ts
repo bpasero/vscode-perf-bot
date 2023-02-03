@@ -246,10 +246,10 @@ async function sendSlackMessage(data: PerfData, opts: Opts): Promise<void> {
     let qualityIcon: string;
     if (opts.quality === 'stable') {
         qualityIcon = ':vscode-stable:';
-    } else if (opts.quality === 'insider') {
-        qualityIcon = ':vscode-insider:';
-    } else {
+    } else if (opts.quality === 'exploration') {
         qualityIcon = ':vscode-exploration:';
+    } else {
+        qualityIcon = ':vscode-insider:';
     }
 
     const stub: ChatPostMessageArguments = {
