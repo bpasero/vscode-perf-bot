@@ -13,17 +13,17 @@ import { Octokit } from '@octokit/rest';
 import { WebClient, LogLevel, ChatPostMessageArguments } from '@slack/web-api';
 
 interface Opts {
-    readonly slackToken?: string;
-    readonly slackMessageThreads?: string;
+    readonly runtime?: 'desktop' | 'web';
+    readonly quality?: 'stable' | 'insider' | 'exploration';
+   
+    readonly folder?: string;
+    readonly file?: string;
 
     readonly githubToken?: string;
     readonly gist?: string;
 
-    readonly quality?: 'stable' | 'insider' | 'exploration';
-    readonly runtime?: 'desktop' | 'web';
-
-    readonly file?: string;
-    readonly folder?: string;
+    readonly slackToken?: string;
+    readonly slackMessageThreads?: string;
 
     readonly fast?: number;
 
@@ -295,13 +295,13 @@ module.exports = async function (argv: string[]): Promise<void> {
     program
         .addOption(new Option('-r, --runtime <runtime>', 'whether to measure startup performance with vscode.dev or local desktop (default) version').choices(['desktop', 'web']))
         .addOption(new Option('-q, --quality <quality>', 'the quality to test (insiders by default)').choices(['stable', 'insider', 'exploration']))
-        .option('-f, --fast <number>', 'what time is considered a fast performance run')
         .option('--folder <folder path>', 'a folder path to open (desktop only)')
         .option('--file <file path>', 'a file path to open (desktop only)')
-        .option('--gist <id>', 'a Gist ID to write all log messages to')
         .option('--github-token <token>', `a GitHub token of scopes 'repo', 'workflow', 'user:email', 'read:user', 'gist' to enable additional performance tests targetting web and logging to a Gist`)
+        .option('--gist <id>', 'a Gist ID to write all log messages to')
         .option('--slack-token <token>', `a Slack token for writing Slack messages`)
         .option('--slack-message-threads <filepath>', `a file in which commit -> message thread mappings are stored`)
+        .option('-f, --fast <number>', 'what time is considered a fast performance run')
         .option('-v, --verbose', 'logs verbose output to the console when errors occur');
 
     const opts: Opts = program.parse(argv).opts();
