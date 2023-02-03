@@ -81,7 +81,8 @@ async function runPerformanceTest(opts: Opts): Promise<void> {
     fs.mkdirSync(path.dirname(Constants.PERF_FILE), { recursive: true });
 
     const args: string[] = [
-        'vscode-bisect',
+        '--yes',
+        'vscode-bisect@latest',
         '-p',
         Constants.PERF_FILE,
         '-c',
